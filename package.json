@@ -1,0 +1,11 @@
+{
+  "scripts": 
+    "start": "node check-versions.js && <...REST>",
+    "build": "node check-versions.js && <...REST>",
+  },
+  "engines": {
+    "node": ">=18",
+    "yarn": ">=1.22.22",
+    "npm": ">=10"
+  },
+}
