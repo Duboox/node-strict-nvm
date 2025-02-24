@@ -44,6 +44,24 @@ const checkNpmVersion = (npmVersionRequired) => {
   }
 };
 
+const checkYarnVersion = (yarnVersionRequired) => {
+  if (!yarnVersionRequired) {
+    console.log('No required Yarn version specified');
+    return;
+  }
+
+  try {
+    const yarnVersion = execSync('yarn -v', { encoding: 'utf8' }).trim();
+    if (VERBOSE) console.log(`Yarn required: '${yarnVersionRequired}' - current: '${yarnVersion}'`);
+
+    if (!semver.satisfies(yarnVersion, yarnVersionRequired)) {
+      printErrAndExit(`Required Yarn version '${yarnVersionRequired}' not satisfied. Current: '${yarnVersion}'.`);
+    }
+  } catch (error) {
+    printErrAndExit('Failed to check Yarn version');
+  }
+};
+
 const checkNodeVersion = (nodeVersionRequired) => {
   if (!nodeVersionRequired) {
     console.log('No required node version specified');
@@ -110,6 +128,13 @@ const main = () => {
     checkNpmVersion(json.engines.npm);
   } else {
     console.log('Verified versions (through NVM).');
+  }
+
+  // Check Yarn version if specified in package.json
+  if (json.engines.yarn) {
+    checkYarnVersion(json.engines.yarn);
+  } else {
+    console.log('No required Yarn version specified');
   }
 };
 
