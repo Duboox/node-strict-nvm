@@ -37,7 +37,9 @@ const checkNpmVersion = (npmVersionRequired) => {
     if (VERBOSE) console.log(`npm required: '${npmVersionRequired}' - current: '${npmVersion}'`);
 
     if (!semver.satisfies(npmVersion, npmVersionRequired)) {
-      printErrAndExit(`Required npm version '${npmVersionRequired}' not satisfied. Current: '${npmVersion}'.`);
+      printErrAndExit(
+        `Required npm version '${npmVersionRequired}' not satisfied. Current: '${npmVersion}'.`,
+      );
     }
   } catch (error) {
     printErrAndExit('Failed to check npm version');
@@ -55,7 +57,9 @@ const checkYarnVersion = (yarnVersionRequired) => {
     if (VERBOSE) console.log(`Yarn required: '${yarnVersionRequired}' - current: '${yarnVersion}'`);
 
     if (!semver.satisfies(yarnVersion, yarnVersionRequired)) {
-      printErrAndExit(`Required Yarn version '${yarnVersionRequired}' not satisfied. Current: '${yarnVersion}'.`);
+      printErrAndExit(
+        `Required Yarn version '${yarnVersionRequired}' not satisfied. Current: '${yarnVersion}'.`,
+      );
     }
   } catch (error) {
     printErrAndExit('Failed to check Yarn version');
@@ -72,7 +76,9 @@ const checkNodeVersion = (nodeVersionRequired) => {
   if (VERBOSE) console.log(`node required: '${nodeVersionRequired}' - current: '${nodeVersion}'`);
 
   if (!semver.satisfies(nodeVersion, nodeVersionRequired)) {
-    printErrAndExit(`Required node version '${nodeVersionRequired}' not satisfied. Current: '${nodeVersion}'.`);
+    printErrAndExit(
+      `Required node version '${nodeVersionRequired}' not satisfied. Current: '${nodeVersion}'.`,
+    );
   }
 };
 
@@ -81,6 +87,16 @@ const sanitizeNodeVersion = (version) => {
   return version.replace(/[>=^~]/g, '');
 };
 
+const nvmUseVersion = (sanitizedVersion) => {
+  try {
+    const NVM_DIR = process.env.NVM_DIR || `${process.env.HOME}/.nvm`;
+    console.log('NVM_DIR:', NVM_DIR); // Add this line
+    const command = `export NVM_DIR="${NVM_DIR}" && [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM\_DIR/nvm\.sh" && nvm use ${sanitizedVersion}`;
+    execSync(command, { stdio: 'inherit' });
+  } catch (error) {
+    console.error(`Failed to use NVM version ${sanitizedVersion}:`, error);
+  }
+};
 
 const checkAndUseNVM = () => {
   try {
@@ -99,17 +115,21 @@ const checkAndUseNVM = () => {
         nodeVersionToUse = json.engines.node;
         console.log(`Using Node version from package.json: ${nodeVersionToUse}`);
       } else {
-        console.log(".nvmrc not found and package.json doesn't specify a Node version. Global version will be used.");
+        console.log(
+          ".nvmrc not found and package.json doesn't specify a Node version. Global version will be used.",
+        );
         return false;
       }
     }
 
-   // Sanitize the version string to remove range specifiers
-   const sanitizedVersion = sanitizeNodeVersion(nodeVersionToUse);
-   //console.log('Sanitized Node version to use:', sanitizedVersion);
-
-   // Use the sanitized version with NVM
-   execSync(`$NVM_DIR/nvm.sh use "${sanitizedVersion}"`, { stdio: 'inherit' });
+    // Sanitize the version string to remove range specifiers
+    const sanitizedVersion = sanitizeNodeVersion(nodeVersionToUse);
+    console.log('Sanitized Node version to use:', sanitizedVersion);
+    const majorVersionToUse = parseInt("v18.20.6".split('.')[0].replace(/^v/, ''), 10);
+    console.log('Major Node version to use:', majorVersionToUse);
+    // Use the sanitized version with NVM
+    //  execSync(`$NVM_DIR/nvm.sh use "${sanitizedVersion}"`, { stdio: 'inherit' });
+    nvmUseVersion(majorVersionToUse);
     return true;
   } catch (error) {
     if (VERBOSE) console.log('NVM not found or error using NVM:', error.message);
